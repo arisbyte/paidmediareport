@@ -229,7 +229,7 @@ st.markdown(f"""
     display: flex;
     align-items: center;
 ">
-    <img src="https://static.wixstatic.com/media/5b5b3c_468bd2fab4934955ad5a44bb26562066~mv2.png/v1/fill/w_280,h_62,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo.png" 
+    <img src="https://imageshack.com/i/poUft7GXp" 
          style="height: 50px; margin-right: 20px;">
     <div>
         <h1 style="margin: 0; color: #1f3864;">Paid Media Report</h1>
