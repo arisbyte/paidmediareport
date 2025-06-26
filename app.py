@@ -216,17 +216,27 @@ def create_ppt_report(df, selected_column):
     return ppt_io
 
 # Configuración de la página
-st.set_page_config(page_title="Paid Media Report", page_icon="📊")
+st.set_page_config(page_title="Paid Media Report Processor", page_icon="📊")
 
-# Header con logo y título
-col1, col2 = st.columns([1, 4])
-
-with col1:
-    st.image("https://static.wixstatic.com/media/5b5b3c_468bd2fab4934955ad5a44bb26562066~mv2.png/v1/fill/w_280,h_62,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo.png", width=100)
-with col2:
-    st.title("Paid Media Report")
-
-st.write("Upload your Excel file with paid media data for quick analysis")
+# Header personalizado con fondo blanco
+st.markdown(f"""
+<div style="
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+">
+    <img src="https://static.wixstatic.com/media/5b5b3c_468bd2fab4934955ad5a44bb26562066~mv2.png/v1/fill/w_280,h_62,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo.png" 
+         style="height: 50px; margin-right: 20px;">
+    <div>
+        <h1 style="margin: 0; color: #1f3864;">Paid Media Report</h1>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 16px;">Upload your Excel file with paid media data for quick analysis</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # Widget para subir archivo
 uploaded_file = st.file_uploader(
