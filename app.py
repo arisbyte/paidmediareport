@@ -216,10 +216,16 @@ def create_ppt_report(df, selected_column):
     return ppt_io
 
 # Configuración de la página
-st.set_page_config(page_title="Paid Media Report Processor", page_icon="📊")
+st.set_page_config(page_title="Paid Media Report", page_icon="📊")
 
-# Título principal
-st.title("📊 Paid Media Report Processor")
+# Header con logo y título
+col1, col2 = st.columns([1, 4])
+
+with col1:
+    st.image("https://static.wixstatic.com/media/5b5b3c_468bd2fab4934955ad5a44bb26562066~mv2.png/v1/fill/w_280,h_62,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo.png", width=100)
+with col2:
+    st.title("Paid Media Report")
+
 st.write("Upload your Excel file with paid media data for quick analysis")
 
 # Widget para subir archivo
