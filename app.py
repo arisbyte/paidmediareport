@@ -4,8 +4,71 @@ import matplotlib.pyplot as plt
 from pptx import Presentation
 from pptx.util import Inches
 import io
+import anthropic
 
-# Función para crear PowerPoint más visual
+# Función para preguntar a Claude sobre los datos
+def ask_claude_about_data(question, df):
+    try:
+        # Usar secrets si está disponible, sino pedir al usuario
+        if "ANTHROPIC_API_KEY" in st.secrets:
+            anthropic_api_key = st.secrets["ANTHROPIC_API_KEY"]
+        else:
+            return "⚠️ API key not configured. Please set ANTHROPIC_API_KEY in Streamlit secrets."
+        
+        client = anthropic.Anthropic(api_key=anthropic_api_key)
+        
+        # Preparar resumen de los datos para Claude
+        data_info = {
+            "rows": len(df),
+            "columns": list(df.columns),
+            "numeric_columns": list(df.select_dtypes(include=['number']).columns),
+            "sample_data": df.head(5).to_string(),
+            "summary_stats": df.describe().to_string() if len(df.select_dtypes(include=['number']).columns) > 0 else "No numeric data"
+        }
+        
+        # Si hay columnas específicas de paid media, agregar insights
+        if 'Platform' in df.columns:
+            data_info["platforms"] = df['Platform'].value_counts().to_string()
+        
+        if 'Campaign' in df.columns:
+            data_info["campaigns_count"] = df['Campaign'].nunique()
+            
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1000,
+            messages=[{
+                "role": "user", 
+                "content": f"""You are a paid media analyst. Analyze this dataset and answer the user's question with actionable insights.
+
+DATASET INFORMATION:
+- Total rows: {data_info['rows']}
+- Columns available: {data_info['columns']}
+- Numeric metrics: {data_info['numeric_columns']}
+
+SAMPLE DATA (first 5 rows):
+{data_info['sample_data']}
+
+SUMMARY STATISTICS:
+{data_info['summary_stats']}
+
+{f"PLATFORMS BREAKDOWN: {data_info['platforms']}" if 'platforms' in data_info else ""}
+{f"TOTAL CAMPAIGNS: {data_info['campaigns_count']}" if 'campaigns_count' in data_info else ""}
+
+USER QUESTION: {question}
+
+Please provide:
+1. A direct answer to the question
+2. Key insights from the data
+3. Actionable recommendations if applicable
+
+Keep the response concise but informative."""
+            }]
+        )
+        
+        return message.content[0].text
+        
+    except Exception as e:
+        return f"❌ Error calling Claude API: {str(e)}"
 def create_ppt_report(df, selected_column):
     from pptx.chart.data import CategoryChartData
     from pptx.enum.chart import XL_CHART_TYPE
@@ -153,7 +216,7 @@ def create_ppt_report(df, selected_column):
     return ppt_io
 
 # Configuración de la página
-st.set_page_config(page_title="Paid Media Report", page_icon="📊")
+st.set_page_config(page_title="Paid Media Report Processor", page_icon="📊")
 
 # Título principal
 st.title("📊 Paid Media Report Processor")
@@ -212,6 +275,38 @@ if uploaded_file is not None:
                 ax.set_ylabel('Frequency')
                 ax.set_title(f'Distribution of {selected_column}')
                 st.pyplot(fig)
+        
+        # === NUEVA SECCIÓN: AI INSIGHTS ===
+        st.subheader("🤖 AI Data Analysis")
+        
+        # Verificar si hay API key configurada
+        if "ANTHROPIC_API_KEY" in st.secrets:
+            st.write("Ask Claude anything about your paid media data:")
+            
+            # Input para la pregunta
+            user_question = st.text_input(
+                "Your question:", 
+                placeholder="e.g., Which platform has the best ROI? What trends do you see?"
+            )
+            
+            # Botón para hacer la pregunta
+            if user_question and st.button("🔍 Ask Claude", type="primary"):
+                with st.spinner("Claude is analyzing your data..."):
+                    response = ask_claude_about_data(user_question, df)
+                    
+                    # Mostrar respuesta
+                    st.success("📝 Claude's Analysis:")
+                    st.write(response)
+                    
+        else:
+            st.info("💡 AI analysis available when API key is configured in Streamlit secrets.")
+            
+            # Mostrar ejemplos de preguntas que podrían hacer
+            st.write("**Example questions you could ask:**")
+            st.write("• Which platform has the best performance?")
+            st.write("• What patterns do you see in the data?")
+            st.write("• Which campaigns should I optimize?")
+            st.write("• What's driving the highest costs?")
                 
         # Descarga de datos procesados
         st.subheader("💾 Download Options")
